@@ -147,7 +147,7 @@ pub const Decoder = struct {
 
     pub fn decode(d: *Decoder, comptime T: type) !T {
         switch (@typeInfo(T)) {
-            .Int => |info| switch (info.bits) {
+            .int => |info| switch (info.bits) {
                 8 => {
                     try skip(d, 1);
                     return d.payload[d.idx - 1];
@@ -167,7 +167,7 @@ pub const Decoder = struct {
                 },
                 else => @compileError("unsupported int type: " ++ @typeName(T)),
             },
-            .Enum => |info| {
+            .@"enum" => |info| {
                 const int = try d.decode(info.tag_type);
                 if (info.is_exhaustive) @compileError("exhaustive enum cannot be used");
                 return @as(T, @enumFromInt(int));
@@ -288,7 +288,7 @@ pub const Writer = struct {
 
     pub fn writeInt(self: *Writer, value: anytype) !void {
         const IntT = @TypeOf(value);
-        const bytes = @divExact(@typeInfo(IntT).Int.bits, 8);
+        const bytes = @divExact(@typeInfo(IntT).int.bits, 8);
         const free = self.buf[self.pos..];
         if (free.len < bytes) return error.BufferOverflow;
         mem.writeInt(IntT, free[0..bytes], value, .big);
